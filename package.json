@@ -1,0 +1,12 @@
+{
+  "name": "ptk-studyhub-gis",
+  "version": "1.0.0",
+  "description": "WebGIS Persebaran Tempat Belajar Kota Pontianak (PJBL SIG Kelompok 3)",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "express": "^4.21.1"
+  }
+}
