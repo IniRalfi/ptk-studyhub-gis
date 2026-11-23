@@ -1,0 +1,1115 @@
+/* ==========================================================================
+   ptk-studyhub-gis — Bento Floating UI (Clean, Minimalist & Soft Aesthetic)
+   Zero-CDN Offline-Ready Design System
+   ========================================================================== */
+
+/* --- 1. CSS Custom Properties / Variables --- */
+:root {
+  /* Surfaces & Backgrounds */
+  --bg-canvas: #F3F6F4;
+  --surface-panel: #FFFFFF;
+  --border-panel: #E3E8DE;
+  --border-hairline: #E5E9F0;
+  --backdrop-modal: rgba(15, 23, 42, 0.35);
+
+  /* Typography / Inks */
+  --ink-primary: #20261C;
+  --ink-secondary: #5C6752;
+  --ink-caption: #8A9382;
+  --ink-inverse: #FFFFFF;
+
+  /* Accent & Action Colors */
+  --action-primary-bg: #20261C;
+  --action-primary-text: #FFFFFF;
+  --action-secondary-bg: #EDF1E2;
+  --action-secondary-text: #2F3A20;
+  --action-secondary-border: #D8DED4;
+
+  /* Spatial Category Colors (Sage & Orange Palette) */
+  --color-perpustakaan: #5B6E2C;
+  --badge-perpustakaan-bg: #EDF1E2;
+  --badge-perpustakaan-text: #5B6E2C;
+
+  --color-baca: #7D8D39;
+  --badge-baca-bg: #F4F6E8;
+  --badge-baca-text: #2F3A20;
+
+  --color-coworking: #FF5A22;
+  --badge-coworking-bg: #FFF1EB;
+  --badge-coworking-text: #B83C0C;
+
+  /* Status Colors */
+  --color-emerald: #2E7D32;
+  --badge-emerald-bg: #E8F5E9;
+  --color-error: #D32F2F;
+  --badge-error-bg: #FFEBEE;
+
+  /* Geometry Overlays */
+  --polygon-zona-fill: rgba(91, 110, 44, 0.14);
+  --polygon-zona-stroke: #5B6E2C;
+  --polygon-kelurahan-fill: #FFFFFF;
+  --polygon-kelurahan-stroke: #D8DED4;
+
+  /* Elevation Shadows */
+  --shadow-floating: 0 8px 30px rgba(0, 0, 0, 0.08), 0 1px 3px rgba(0, 0, 0, 0.04);
+  --shadow-hover: 0 12px 36px rgba(0, 0, 0, 0.12), 0 2px 6px rgba(0, 0, 0, 0.06);
+  --shadow-soft: 0 2px 8px rgba(0, 0, 0, 0.04);
+
+  /* Radius Hierarchy */
+  --radius-panel: 16px;
+  --radius-card: 12px;
+  --radius-control: 10px;
+  --radius-pill: 9999px;
+  --radius-tooltip: 6px;
+}
+
+/* --- 2. Base Reset & Typography --- */
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html, body {
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+  color: var(--ink-primary);
+  background-color: var(--bg-canvas);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Focus styles for keyboard accessibility */
+button:focus-visible,
+input:focus-visible,
+textarea:focus-visible {
+  outline: 2px solid var(--color-perpustakaan);
+  outline-offset: 2px;
+}
+
+/* --- 3. Full-Bleed Map Canvas --- */
+#map {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  z-index: 1;
+  background-color: var(--bg-canvas);
+}
+
+/* --- 4. Overlays: Loading & Error States --- */
+.overlay-state {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(243, 246, 244, 0.75);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+  z-index: 2500;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.state-card {
+  background: var(--surface-panel);
+  border: 1px solid var(--border-panel);
+  border-radius: var(--radius-card);
+  box-shadow: var(--shadow-floating);
+  padding: 32px 40px;
+  text-align: center;
+  max-width: 380px;
+}
+
+.error-card {
+  border-color: #FFCDD2;
+  background: #FFFBFB;
+}
+
+.spinner {
+  width: 36px;
+  height: 36px;
+  margin: 0 auto 16px;
+  border: 3px solid rgba(91, 110, 44, 0.2);
+  border-top-color: var(--color-perpustakaan);
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+.error-icon {
+  width: 40px;
+  height: 40px;
+  margin: 0 auto 14px;
+  background: var(--badge-error-bg);
+  color: var(--color-error);
+  font-size: 20px;
+  font-weight: bold;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.state-title {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--ink-primary);
+  margin-bottom: 6px;
+}
+
+.state-subtitle {
+  font-size: 13px;
+  color: var(--ink-secondary);
+  line-height: 1.4;
+}
+
+/* --- 5. Bento Panel (Base Floating Surface) --- */
+.bento-panel {
+  position: absolute;
+  background: var(--surface-panel);
+  border: 1px solid var(--border-panel);
+  border-radius: var(--radius-panel);
+  box-shadow: var(--shadow-floating);
+  z-index: 1000;
+  display: flex;
+  flex-direction: column;
+}
+
+.hairline {
+  height: 1px;
+  background-color: var(--border-hairline);
+  width: 100%;
+}
+
+.panel-section {
+  padding: 16px 20px;
+}
+
+/* --- 6. Bento Kiri: Panel Statistik (Focal Point) --- */
+.bento-left {
+  top: 24px;
+  left: 24px;
+  width: 304px;
+}
+
+.context-tag {
+  font-size: 10px;
+  color: var(--ink-caption);
+  text-transform: none;
+  font-weight: 500;
+  display: block;
+  margin-bottom: 4px;
+}
+
+.panel-title {
+  font-size: 19px;
+  font-weight: 700;
+  color: var(--ink-primary);
+  line-height: 1.25;
+}
+
+.panel-subtitle {
+  font-size: 12px;
+  color: var(--ink-secondary);
+  margin-top: 4px;
+  line-height: 1.4;
+}
+
+.stats-focal-section {
+  padding: 20px;
+}
+
+.stat-main {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+}
+
+.stat-number {
+  font-size: 54px;
+  font-weight: 700;
+  color: var(--ink-primary);
+  line-height: 1;
+  letter-spacing: -0.03em;
+}
+
+.stat-label {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--ink-secondary);
+}
+
+.stat-gratis-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: var(--badge-emerald-bg);
+  color: var(--color-emerald);
+  padding: 4px 10px;
+  border-radius: var(--radius-pill);
+  font-size: 11px;
+  font-weight: 600;
+  margin-top: 10px;
+}
+
+/* Stacked Ratio Bar Telanjang 6px (tanpa background track abu) */
+.stat-bar {
+  display: flex;
+  height: 6px;
+  width: 100%;
+  border-radius: var(--radius-pill);
+  overflow: hidden;
+  margin-top: 14px;
+  background: transparent;
+}
+
+.bar-seg {
+  height: 100%;
+  transition: width 0.4s ease;
+}
+
+.seg-perpustakaan { background-color: var(--color-perpustakaan); }
+.seg-baca { background-color: var(--color-baca); }
+.seg-coworking { background-color: var(--color-coworking); }
+
+/* Legend Row */
+.legend-section {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 16px 20px;
+}
+
+.legend-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 12px;
+}
+
+.legend-meta {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.dot-indicator {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.dot-perpustakaan { background-color: var(--color-perpustakaan); }
+.dot-baca { background-color: var(--color-baca); }
+.dot-coworking { background-color: var(--color-coworking); }
+.dot-emerald { background-color: var(--color-emerald); }
+
+.legend-name {
+  color: var(--ink-secondary);
+  font-weight: 500;
+}
+
+.legend-val {
+  font-weight: 600;
+  color: var(--ink-primary);
+}
+
+.footer-section {
+  padding: 12px 20px;
+}
+
+.caption-text {
+  font-size: 10px;
+  color: var(--ink-caption);
+}
+
+/* --- 7. Bento Kanan: Kontrol Filter & Daftar Lokasi --- */
+.bento-right {
+  top: 24px;
+  right: 24px;
+  width: 344px;
+  max-height: calc(100vh - 110px);
+}
+
+.filter-top-section {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 18px 20px;
+}
+
+/* Search Box */
+.search-box {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.search-icon {
+  position: absolute;
+  left: 12px;
+  width: 16px;
+  height: 16px;
+  color: var(--ink-caption);
+  pointer-events: none;
+}
+
+.search-box input[type="search"] {
+  width: 100%;
+  height: 38px;
+  padding: 0 12px 0 36px;
+  background: var(--bg-canvas);
+  border: 1px solid var(--border-hairline);
+  border-radius: var(--radius-control);
+  font-size: 13px;
+  color: var(--ink-primary);
+  outline: none;
+  transition: border-color 0.2s, background-color 0.2s;
+}
+
+.search-box input[type="search"]:focus {
+  background: var(--surface-panel);
+  border-color: var(--color-perpustakaan);
+}
+
+/* Chips Filter (Pills) */
+.chips-group {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.chip-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  border-radius: var(--radius-pill);
+  font-size: 12px;
+  font-weight: 500;
+  border: 1px solid var(--border-hairline);
+  background: var(--surface-panel);
+  color: var(--ink-secondary);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  user-select: none;
+}
+
+.chip-pill:hover {
+  background: var(--bg-canvas);
+  border-color: var(--action-secondary-border);
+}
+
+.chip-pill.active {
+  background: var(--action-secondary-bg);
+  color: var(--action-secondary-text);
+  border-color: var(--color-perpustakaan);
+}
+
+.chip-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+}
+
+/* Toggles Group */
+.toggles-group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding-top: 4px;
+}
+
+.toggle-control {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  cursor: pointer;
+  user-select: none;
+}
+
+.toggle-control input[type="checkbox"] {
+  position: absolute;
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.toggle-switch {
+  position: relative;
+  width: 34px;
+  height: 18px;
+  background-color: var(--border-hairline);
+  border-radius: var(--radius-pill);
+  transition: background-color 0.2s ease;
+  flex-shrink: 0;
+}
+
+.toggle-switch::after {
+  content: "";
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 14px;
+  height: 14px;
+  background-color: #FFFFFF;
+  border-radius: 50%;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+  transition: transform 0.2s ease;
+}
+
+.toggle-control input[type="checkbox"]:checked + .toggle-switch {
+  background-color: var(--color-perpustakaan);
+}
+
+.toggle-control input[type="checkbox"]:checked + .toggle-switch::after {
+  transform: translateX(16px);
+}
+
+.toggle-label {
+  font-size: 12px;
+  color: var(--ink-secondary);
+  font-weight: 500;
+}
+
+/* List Header */
+.list-header-section {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 20px;
+  background: #FCFDFB;
+}
+
+.list-title {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--ink-primary);
+}
+
+.list-counter {
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--ink-caption);
+}
+
+/* Location List Container */
+.location-list-container {
+  overflow-y: auto;
+  max-height: calc(100vh - 430px);
+  min-height: 140px;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Location List Row (Tanpa kartu bertumpuk, hanya hairline-separated) */
+.location-item {
+  padding: 12px 20px;
+  border-bottom: 1px solid var(--border-hairline);
+  cursor: pointer;
+  transition: background-color 0.15s ease;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.location-item:last-child {
+  border-bottom: none;
+}
+
+.location-item:hover,
+.location-item:focus {
+  background-color: #F8FAF7;
+  outline: none;
+}
+
+.location-item.active {
+  background-color: var(--action-secondary-bg);
+}
+
+.loc-top {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.loc-title {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--ink-primary);
+  line-height: 1.3;
+}
+
+.loc-badge {
+  font-size: 10px;
+  font-weight: 600;
+  padding: 2px 7px;
+  border-radius: var(--radius-pill);
+  flex-shrink: 0;
+  letter-spacing: 0.02em;
+}
+
+.loc-badge.perpustakaan {
+  background-color: var(--badge-perpustakaan-bg);
+  color: var(--badge-perpustakaan-text);
+}
+
+.loc-badge.baca {
+  background-color: var(--badge-baca-bg);
+  color: var(--badge-baca-text);
+}
+
+.loc-badge.coworking {
+  background-color: var(--badge-coworking-bg);
+  color: var(--badge-coworking-text);
+}
+
+.loc-meta {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 11px;
+  color: var(--ink-caption);
+}
+
+.loc-meta-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.loc-gratis-tag {
+  color: var(--color-emerald);
+  font-weight: 600;
+}
+
+/* Empty State */
+.empty-state {
+  padding: 32px 20px;
+  text-align: center;
+}
+
+.empty-title {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--ink-primary);
+  margin-bottom: 4px;
+}
+
+.empty-subtitle {
+  font-size: 11px;
+  color: var(--ink-caption);
+  line-height: 1.4;
+}
+
+/* --- 8. Tombol Aksi di Bawah Bento Kanan --- */
+.bento-right-actions {
+  position: absolute;
+  top: calc(100vh - 72px);
+  right: 24px;
+  width: 344px;
+  z-index: 1000;
+  display: flex;
+  gap: 10px;
+}
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: 40px;
+  padding: 0 16px;
+  border-radius: var(--radius-control);
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  border: 1px solid transparent;
+  user-select: none;
+}
+
+.btn-primary {
+  background-color: var(--action-primary-bg);
+  color: var(--action-primary-text);
+  flex: 2;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.btn-primary:hover {
+  background-color: #313A2B;
+}
+
+.btn-secondary {
+  background-color: var(--surface-panel);
+  color: var(--action-secondary-text);
+  border-color: var(--action-secondary-border);
+  flex: 1;
+}
+
+.btn-secondary:hover {
+  background-color: var(--action-secondary-bg);
+}
+
+/* --- 9. FAB Mobile --- */
+.fab-mobile {
+  display: none;
+  position: fixed;
+  right: 20px;
+  bottom: calc(45vh + 16px);
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  background-color: var(--action-primary-bg);
+  color: var(--action-primary-text);
+  font-size: 28px;
+  font-weight: 300;
+  border: none;
+  box-shadow: var(--shadow-floating);
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  z-index: 1500;
+  transition: transform 0.2s ease, background-color 0.2s ease;
+}
+
+.fab-mobile:active {
+  transform: scale(0.95);
+}
+
+/* --- 10. Bento Bottom Bar: Layer Switcher --- */
+.bento-bottom-bar {
+  position: absolute;
+  bottom: 24px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 1000;
+  pointer-events: none;
+}
+
+.bottom-capsule {
+  pointer-events: auto;
+  display: inline-flex;
+  align-items: center;
+  background-color: var(--ink-primary);
+  padding: 4px;
+  border-radius: var(--radius-pill);
+  box-shadow: var(--shadow-floating);
+  gap: 2px;
+}
+
+.layer-capsule-item {
+  background: transparent;
+  border: none;
+  color: rgba(255, 255, 255, 0.7);
+  padding: 8px 16px;
+  border-radius: var(--radius-pill);
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+}
+
+.layer-capsule-item:hover {
+  color: #FFFFFF;
+}
+
+.layer-capsule-item.active {
+  background-color: #FFFFFF;
+  color: var(--ink-primary);
+  font-weight: 600;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+}
+
+/* --- 11. Modal Tambah Zona --- */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background-color: var(--backdrop-modal);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+  z-index: 2000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+}
+
+.modal-card {
+  background: var(--surface-panel);
+  border: 1px solid var(--border-panel);
+  border-radius: var(--radius-card);
+  box-shadow: var(--shadow-floating);
+  width: 100%;
+  max-width: 440px;
+  padding: 24px;
+  animation: modalIn 0.2s ease-out;
+}
+
+@keyframes modalIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.modal-title {
+  font-size: 17px;
+  font-weight: 700;
+  color: var(--ink-primary);
+}
+
+.btn-close-modal {
+  background: transparent;
+  border: none;
+  font-size: 18px;
+  color: var(--ink-caption);
+  cursor: pointer;
+  padding: 4px;
+  border-radius: 4px;
+}
+
+.btn-close-modal:hover {
+  color: var(--ink-primary);
+}
+
+.modal-desc {
+  font-size: 12px;
+  color: var(--ink-secondary);
+  margin-top: 4px;
+  margin-bottom: 20px;
+}
+
+.form-group {
+  margin-bottom: 16px;
+}
+
+.form-label {
+  display: block;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--ink-primary);
+  margin-bottom: 6px;
+}
+
+.form-label .req {
+  color: var(--color-error);
+}
+
+.form-input,
+.form-textarea {
+  width: 100%;
+  padding: 10px 12px;
+  background: var(--bg-canvas);
+  border: 1px solid var(--border-hairline);
+  border-radius: var(--radius-control);
+  font-size: 13px;
+  color: var(--ink-primary);
+  font-family: inherit;
+  outline: none;
+  transition: border-color 0.2s;
+}
+
+.form-input:focus,
+.form-textarea:focus {
+  background: var(--surface-panel);
+  border-color: var(--color-perpustakaan);
+}
+
+.form-textarea {
+  resize: vertical;
+  min-height: 70px;
+}
+
+.coord-summary-box {
+  background: #F7FAF6;
+  border: 1px dashed var(--action-secondary-border);
+  padding: 10px 14px;
+  border-radius: var(--radius-control);
+  font-size: 11px;
+  color: var(--ink-secondary);
+  margin-bottom: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.coord-label {
+  font-weight: 600;
+  color: var(--ink-primary);
+}
+
+.modal-actions {
+  display: flex;
+  gap: 10px;
+  justify-content: flex-end;
+}
+
+/* --- 12. Leaflet Custom Components --- */
+/* Custom Popup */
+.leaflet-popup-content-wrapper {
+  background: var(--surface-panel) !important;
+  border: 1px solid var(--border-panel) !important;
+  border-radius: var(--radius-card) !important;
+  box-shadow: var(--shadow-floating) !important;
+  padding: 0 !important;
+  overflow: hidden;
+}
+
+.leaflet-popup-content {
+  margin: 14px 16px !important;
+  line-height: 1.4 !important;
+  font-family: inherit !important;
+}
+
+.popup-container {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 200px;
+  max-width: 260px;
+}
+
+.popup-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.popup-badge {
+  font-size: 10px;
+  font-weight: 600;
+  padding: 2px 7px;
+  border-radius: var(--radius-pill);
+}
+
+.popup-badge.perpustakaan {
+  background: var(--badge-perpustakaan-bg);
+  color: var(--badge-perpustakaan-text);
+}
+.popup-badge.baca {
+  background: var(--badge-baca-bg);
+  color: var(--badge-baca-text);
+}
+.popup-badge.coworking {
+  background: var(--badge-coworking-bg);
+  color: var(--badge-coworking-text);
+}
+.popup-badge.sekolah {
+  background: #E8EAF6;
+  color: #3F51B5;
+}
+.popup-badge.kampus {
+  background: #EDE7F6;
+  color: #673AB7;
+}
+
+.popup-name {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--ink-primary);
+  margin: 2px 0;
+  line-height: 1.3;
+}
+
+.popup-details {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  font-size: 11px;
+  color: var(--ink-secondary);
+  padding-top: 4px;
+  border-top: 1px solid var(--border-hairline);
+}
+
+.popup-detail-row {
+  display: flex;
+  justify-content: space-between;
+}
+
+.popup-detail-row .val-gratis {
+  color: var(--color-emerald);
+  font-weight: 600;
+}
+
+.leaflet-popup-tip {
+  background: var(--surface-panel) !important;
+  box-shadow: none !important;
+}
+
+/* Custom Tooltip (Rule-Based Labeling) */
+.custom-tooltip {
+  background: #FFFFFF !important;
+  color: var(--ink-primary) !important;
+  border: 1px solid var(--border-hairline) !important;
+  border-radius: var(--radius-tooltip) !important;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08) !important;
+  font-size: 11px !important;
+  font-weight: 600 !important;
+  padding: 3px 7px !important;
+}
+
+.custom-tooltip::before {
+  display: none !important;
+}
+
+/* Custom Marker Cluster Styling */
+.marker-cluster-custom {
+  background-clip: padding-box;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.marker-cluster-custom div {
+  width: 32px;
+  height: 32px;
+  background-color: var(--color-perpustakaan);
+  color: #FFFFFF;
+  border: 2.5px solid #FFFFFF;
+  border-radius: 50%;
+  font-size: 12px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+}
+
+/* Leaflet Zoom Control Position Override */
+.leaflet-bottom.leaflet-left {
+  bottom: 24px;
+  left: 24px;
+}
+
+.leaflet-bar {
+  border: 1px solid var(--border-panel) !important;
+  border-radius: var(--radius-control) !important;
+  overflow: hidden;
+  box-shadow: var(--shadow-floating) !important;
+}
+
+.leaflet-bar a {
+  background-color: var(--surface-panel) !important;
+  color: var(--ink-primary) !important;
+  border-bottom: 1px solid var(--border-hairline) !important;
+}
+
+.leaflet-bar a:hover {
+  background-color: var(--bg-canvas) !important;
+}
+
+/* Hide draw toolbar by default, draw is initiated by + Tambah Zona button */
+.leaflet-draw {
+  display: none !important;
+}
+
+/* --- 13. Responsive Breakpoints (Mobile Screen <= 768px) --- */
+@media (max-width: 768px) {
+  /* Bento Kiri menjadi header ringkas di atas */
+  .bento-left {
+    top: 12px;
+    left: 12px;
+    right: 12px;
+    width: calc(100vw - 24px);
+    max-height: 180px;
+    padding: 0;
+  }
+
+  .bento-left .panel-subtitle,
+  .bento-left .legend-section,
+  .bento-left .footer-section,
+  .bento-left .hairline:last-of-type {
+    display: none;
+  }
+
+  .bento-left .header-section {
+    padding: 10px 14px 6px;
+  }
+
+  .bento-left .panel-title {
+    font-size: 16px;
+  }
+
+  .bento-left .stats-focal-section {
+    padding: 6px 14px 12px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  .bento-left .stat-number {
+    font-size: 32px;
+  }
+
+  .bento-left .stat-bar {
+    width: 100%;
+    margin-top: 6px;
+  }
+
+  /* Bento Kanan menjadi Bottom Sheet 45vh */
+  .bento-right {
+    top: auto;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    width: 100vw;
+    height: 45vh;
+    max-height: 45vh;
+    border-radius: 20px 20px 0 0;
+    border-bottom: none;
+    box-shadow: 0 -8px 24px rgba(0, 0, 0, 0.12);
+  }
+
+  .location-list-container {
+    max-height: calc(45vh - 190px);
+  }
+
+  .bento-right-actions {
+    display: none;
+  }
+
+  /* Tampilkan FAB Mobile */
+  .fab-mobile {
+    display: flex;
+  }
+
+  /* Sembunyikan bottom bar di mobile atau letakkan di atas sheet */
+  .bento-bottom-bar {
+    bottom: calc(45vh + 16px);
+    left: 16px;
+    transform: none;
+  }
+
+  .leaflet-bottom.leaflet-left {
+    bottom: calc(45vh + 16px);
+  }
+}

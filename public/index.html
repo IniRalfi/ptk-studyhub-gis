@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Pontianak Kota Literasi — WebGIS Tempat Belajar</title>
+  
+  <!-- Zero-CDN Offline Libraries -->
+  <link rel="stylesheet" href="libs/leaflet/leaflet.css">
+  <link rel="stylesheet" href="libs/leaflet.markercluster/MarkerCluster.css">
+  <link rel="stylesheet" href="libs/leaflet.markercluster/MarkerCluster.Default.css">
+  <link rel="stylesheet" href="libs/leaflet-draw/leaflet.draw.css">
+  
+  <!-- Pure Vanilla CSS -->
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <!-- Kanvas Peta Penuh (100vw x 100vh) -->
+  <div id="map" role="region" aria-label="Peta Interaktif Kota Pontianak"></div>
+
+  <!-- State Loading Overlay -->
+  <div id="loading-overlay" class="overlay-state" aria-live="polite">
+    <div class="state-card">
+      <div class="spinner" aria-hidden="true"></div>
+      <p class="state-title">Memuat data peta...</p>
+      <span class="state-subtitle">Mengambil dataset spasial Kota Pontianak</span>
+    </div>
+  </div>
+
+  <!-- State Error Overlay -->
+  <div id="error-overlay" class="overlay-state" style="display: none;" role="alert">
+    <div class="state-card error-card">
+      <div class="error-icon" aria-hidden="true">✕</div>
+      <p class="state-title" id="error-message">Gagal memuat data WebGIS.</p>
+      <span class="state-subtitle">Pastikan server backend lokal telah aktif di port 3000.</span>
+      <button type="button" id="btn-retry" class="btn btn-primary" style="margin-top: 14px;">Coba Muat Ulang</button>
+    </div>
+  </div>
+
+  <!-- Bento Kiri: Panel Statistik & Rasio Kategori -->
+  <aside class="bento-panel bento-left" aria-label="Statistik Tempat Belajar">
+    <div class="panel-section header-section">
+      <span class="context-tag">PjBL SIG Dasar, Kelompok 3</span>
+      <h1 class="panel-title">Pontianak Kota Literasi</h1>
+      <p class="panel-subtitle">Persebaran fasilitas tempat belajar warga dan mahasiswa</p>
+    </div>
+
+    <div class="hairline"></div>
+
+    <div class="panel-section stats-focal-section">
+      <div class="stat-main">
+        <span class="stat-number" id="stat-total">0</span>
+        <span class="stat-label">Total lokasi</span>
+      </div>
+      
+      <div class="stat-gratis-badge" id="badge-gratis-container">
+        <span class="dot-indicator dot-emerald"></span>
+        <span id="stat-gratis-text">0 gratis (0%)</span>
+      </div>
+
+      <!-- Rasio 3 warna telanjang 6px (tanpa track abu) -->
+      <div class="stat-bar" id="stat-ratio-bar" title="Rasio kategori">
+        <div class="bar-seg seg-perpustakaan" style="width: 0%;" title="Perpustakaan"></div>
+        <div class="bar-seg seg-baca" style="width: 0%;" title="Taman Baca"></div>
+        <div class="bar-seg seg-coworking" style="width: 0%;" title="Co-working"></div>
+      </div>
+    </div>
+
+    <div class="hairline"></div>
+
+    <div class="panel-section legend-section">
+      <div class="legend-row">
+        <div class="legend-meta">
+          <span class="dot-indicator dot-perpustakaan"></span>
+          <span class="legend-name">Perpustakaan</span>
+        </div>
+        <span class="legend-val" id="stat-count-perpustakaan">0</span>
+      </div>
+
+      <div class="legend-row">
+        <div class="legend-meta">
+          <span class="dot-indicator dot-baca"></span>
+          <span class="legend-name">Taman Baca</span>
+        </div>
+        <span class="legend-val" id="stat-count-baca">0</span>
+      </div>
+
+      <div class="legend-row">
+        <div class="legend-meta">
+          <span class="dot-indicator dot-coworking"></span>
+          <span class="legend-name">Co-working Space</span>
+        </div>
+        <span class="legend-val" id="stat-count-coworking">0</span>
+      </div>
+    </div>
+
+    <div class="hairline"></div>
+
+    <div class="panel-section footer-section">
+      <span class="caption-text">Angka dari GET /api/stats/jenis</span>
+    </div>
+  </aside>
+
+  <!-- Bento Kanan: Kontrol Filter & Daftar Lokasi -->
+  <aside class="bento-panel bento-right" aria-label="Kontrol dan Daftar Tempat Belajar">
+    <div class="panel-section filter-top-section">
+      <!-- Search Input -->
+      <div class="search-box">
+        <svg class="search-icon" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <circle cx="8.5" cy="8.5" r="5.5"></circle>
+          <line x1="12.5" y1="12.5" x2="17" y2="17"></line>
+        </svg>
+        <input type="search" id="search-input" placeholder="Cari nama tempat belajar..." aria-label="Cari nama tempat belajar" autocomplete="off">
+      </div>
+
+      <!-- Filter Chips Kategori (Pill) -->
+      <div class="chips-group" role="group" aria-label="Filter kategori tempat">
+        <button type="button" class="chip-pill active" data-kategori="perpustakaan" id="chip-perpustakaan">
+          <span class="chip-dot dot-perpustakaan"></span>Perpustakaan
+        </button>
+        <button type="button" class="chip-pill active" data-kategori="baca" id="chip-baca">
+          <span class="chip-dot dot-baca"></span>Taman Baca
+        </button>
+        <button type="button" class="chip-pill active" data-kategori="coworking" id="chip-coworking">
+          <span class="chip-dot dot-coworking"></span>Co-working
+        </button>
+      </div>
+
+      <!-- Toggle Switches -->
+      <div class="toggles-group">
+        <label class="toggle-control" for="toggle-gratis">
+          <input type="checkbox" id="toggle-gratis">
+          <span class="toggle-switch"></span>
+          <span class="toggle-label">Hanya gratis</span>
+        </label>
+
+        <label class="toggle-control" for="toggle-cluster">
+          <input type="checkbox" id="toggle-cluster">
+          <span class="toggle-switch"></span>
+          <span class="toggle-label">Mode cluster</span>
+        </label>
+
+        <label class="toggle-control" for="toggle-labels">
+          <input type="checkbox" id="toggle-labels" checked>
+          <span class="toggle-switch"></span>
+          <span class="toggle-label">Label kapasitas &gt; 50</span>
+        </label>
+      </div>
+    </div>
+
+    <div class="hairline"></div>
+
+    <!-- Header Daftar Lokasi -->
+    <div class="panel-section list-header-section">
+      <span class="list-title">Lokasi tempat belajar</span>
+      <span class="list-counter" id="location-counter">0 dari 0</span>
+    </div>
+
+    <!-- Kontainer Daftar Lokasi (Scrollable) -->
+    <div class="location-list-container" id="location-list" role="list" aria-label="Daftar tempat belajar terfilter">
+      <!-- Lokasi akan di-render secara dinamis oleh app.js -->
+    </div>
+
+    <!-- State Kosong jika tidak ada hasil pencarian/filter -->
+    <div id="location-empty" class="empty-state" style="display: none;">
+      <p class="empty-title">Tidak ada lokasi yang cocok</p>
+      <span class="empty-subtitle">Coba longgarkan filter kategori atau ubah kata kunci pencarian.</span>
+    </div>
+  </aside>
+
+  <!-- Tombol Aksi di Luar Bento Kanan (Desktop) -->
+  <div class="bento-right-actions">
+    <button type="button" id="btn-tambah-zona" class="btn btn-primary" aria-label="Tambah zona belajar baru">
+      + Tambah Zona
+    </button>
+    <button type="button" id="btn-reset-peta" class="btn btn-secondary" aria-label="Reset tampilan peta">
+      Reset Peta
+    </button>
+  </div>
+
+  <!-- Floating Action Button (FAB) Mobile -->
+  <button type="button" id="btn-fab-zona" class="fab-mobile" aria-label="Tambah zona belajar baru">
+    +
+  </button>
+
+  <!-- Bento Bottom Bar: Layer Switcher Cepat (Kapsul Gelap #20261C) -->
+  <nav class="bento-bottom-bar" aria-label="Pengalih Layer Peta">
+    <div class="bottom-capsule">
+      <button type="button" class="layer-capsule-item active" data-layer="zona" id="layer-btn-zona">
+        Zona Belajar
+      </button>
+      <button type="button" class="layer-capsule-item active" data-layer="kelurahan" id="layer-btn-kelurahan">
+        Batas Kelurahan
+      </button>
+      <button type="button" class="layer-capsule-item" data-layer="sekolah-kampus" id="layer-btn-sekolah-kampus">
+        Sekolah &amp; Kampus
+      </button>
+    </div>
+  </nav>
+
+  <!-- Modal Tambah Zona Belajar Baru -->
+  <div id="modal-zona" class="modal-overlay" style="display: none;" role="dialog" aria-modal="true" aria-labelledby="modal-zona-title">
+    <div class="modal-card">
+      <div class="modal-header">
+        <h2 id="modal-zona-title" class="modal-title">Tambah Zona Belajar Baru</h2>
+        <button type="button" class="btn-close-modal" id="btn-close-modal" aria-label="Tutup modal">✕</button>
+      </div>
+      <p class="modal-desc">Simpan poligon hasil digitasi ke basis data spasial lokal.</p>
+
+      <form id="form-zona">
+        <div class="form-group">
+          <label for="input-nama-zona" class="form-label">Nama Zona <span class="req">*</span></label>
+          <input type="text" id="input-nama-zona" class="form-input" required placeholder="Contoh: Zona Literasi UNTAN">
+        </div>
+
+        <div class="form-group">
+          <label for="input-keterangan" class="form-label">Keterangan</label>
+          <textarea id="input-keterangan" class="form-textarea" rows="3" placeholder="Deskripsi kawasan atau konsentrasi fasilitas belajar..."></textarea>
+        </div>
+
+        <div class="coord-summary-box">
+          <span class="coord-label">Ringkasan Geometri:</span>
+          <span class="coord-val" id="summary-coord-text">Poligon (0 titik sudut)</span>
+        </div>
+
+        <div class="modal-actions">
+          <button type="button" id="btn-batal-zona" class="btn btn-secondary">Batal</button>
+          <button type="submit" id="btn-simpan-zona" class="btn btn-primary">Simpan Zona</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Zero-CDN Offline Scripts -->
+  <script src="libs/leaflet/leaflet.js"></script>
+  <script src="libs/leaflet.markercluster/leaflet.markercluster.js"></script>
+  <script src="libs/leaflet-draw/leaflet.draw.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
