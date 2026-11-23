@@ -132,8 +132,8 @@ function initMap() {
     },
     onEachFeature: function (feature, layer) {
       const p = feature.properties || {};
-      const kel = p.KELURAHAN || p.WADMKD || p.NAMOBJ || 'Kelurahan';
-      const kec = p.KECAMATAN || p.WADMKC || '';
+      const kel = p.kel_desa || p.nama || p.ori_name || p.KELURAHAN || p.WADMKD || p.NAMOBJ || 'Kelurahan';
+      const kec = p.kecamata || p.kecamatan || p.KECAMATAN || p.WADMKC || '';
       layer.bindTooltip(`<strong>${kel}</strong>${kec ? '<br><span style="font-size:10px;color:#5C6752;">Kec. ' + kec + '</span>' : ''}`, {
         sticky: true,
         direction: 'top',
@@ -332,10 +332,12 @@ function renderBelajar() {
     // 2. Saring Status Gratis
     if (state.showGratis && !isGratis(p.gratis)) return false;
 
-    // 3. Saring Query Pencarian Nama Tempat
+    // 3. Saring Query Pencarian (Nama, Jenis, atau Alamat)
     if (query) {
       const nama = (p.nama || '').toLowerCase();
-      if (!nama.includes(query)) return false;
+      const jenis = (p.jenis || '').toLowerCase();
+      const alamat = (p.alamat || '').toLowerCase();
+      if (!nama.includes(query) && !jenis.includes(query) && !alamat.includes(query)) return false;
     }
 
     return true;
@@ -486,17 +488,23 @@ function renderLocationList(features) {
       </div>
     `;
 
-    // Interaksi klik: Sorot & FlyTo lokasi di peta
+    // Interaksi klik: Sorot & FlyTo lokasi di peta (dengan dukungan Cluster zoomToShowLayer)
     const handleSelectLocation = () => {
       document.querySelectorAll('.location-item').forEach((el) => el.classList.remove('active'));
       item.classList.add('active');
 
       const markerData = markersMap.get(index);
       if (markerData && map) {
-        map.flyTo([markerData.lat, markerData.lng], 16, { duration: 1.2 });
-        setTimeout(() => {
-          markerData.marker.openPopup();
-        }, 1250);
+        if (state.cluster && clusterGroup && clusterGroup.hasLayer(markerData.marker)) {
+          clusterGroup.zoomToShowLayer(markerData.marker, () => {
+            markerData.marker.openPopup();
+          });
+        } else {
+          map.flyTo([markerData.lat, markerData.lng], 16, { duration: 1.2 });
+          setTimeout(() => {
+            markerData.marker.openPopup();
+          }, 1250);
+        }
       }
     };
 
@@ -607,7 +615,7 @@ async function loadSekolahKampusLayers() {
             <div class="popup-header">
               <span class="popup-badge kampus">Kampus / PT</span>
             </div>
-            <h3 class="popup-name">${p.nama || p.NAMOBJ || 'Perguruan Tinggi'}</h3>
+            <h3 class="popup-name">${p.nama || p.name || p.NAMOBJ || 'Perguruan Tinggi'}</h3>
           </div>
         `);
         sekolahKampusLayerGroup.addLayer(marker);
@@ -631,7 +639,7 @@ async function loadSekolahKampusLayers() {
             <div class="popup-header">
               <span class="popup-badge sekolah">Sekolah</span>
             </div>
-            <h3 class="popup-name">${p.nama || p.NAMOBJ || 'Sekolah'}</h3>
+            <h3 class="popup-name">${p.nama || p.name || p.NAMOBJ || 'Sekolah'}</h3>
           </div>
         `);
         sekolahKampusLayerGroup.addLayer(marker);
