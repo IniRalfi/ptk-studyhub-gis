@@ -4,7 +4,8 @@
   "description": "WebGIS Persebaran Tempat Belajar Kota Pontianak (PJBL SIG Kelompok 3)",
   "main": "server.js",
   "scripts": {
-    "start": "node server.js"
+    "start": "node server.js",
+    "test": "node test/api-test.js"
   },
   "dependencies": {
     "express": "^4.21.1"
